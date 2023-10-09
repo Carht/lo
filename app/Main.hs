@@ -2,7 +2,7 @@ module Main (main) where
 
 import Lib
 import System.Posix.Files (FileStatus, isDirectory, isRegularFile, isSymbolicLink,
-                          getSymbolicLinkStatus)
+                          getSymbolicLinkStatus, fileSize)
 import System.Posix.Types (FileOffset)
 
 data TipoArchivo = Directorio | Archivo | LinkSimbolico | Otro deriving (Show, Eq)
@@ -25,5 +25,10 @@ tipoArchivo ruta = do
   estatus <- getSymbolicLinkStatus ruta
   return $ estatusArchivo estatus
 
+tamanoArchivo :: FilePath -> IO FileOffset
+tamanoArchivo ruta = do
+  estatus <- getSymbolicLinkStatus ruta
+  return $ fileSize estatus
+  
 main :: IO ()
 main = someFunc
