@@ -1,6 +1,9 @@
 module Main (main) where
 
 import Lib
+import Control.Monad (forM)
+import System.FilePath ((</>))
+import System.Directory (listDirectory)
 import System.Posix.Files (FileStatus, isDirectory, isRegularFile, isSymbolicLink,
                           getSymbolicLinkStatus, fileSize)
 import System.Posix.Types (FileOffset)
@@ -29,6 +32,14 @@ tamanoArchivo :: FilePath -> IO FileOffset
 tamanoArchivo ruta = do
   estatus <- getSymbolicLinkStatus ruta
   return $ fileSize estatus
+
+rutaCompleta :: FilePath -> IO [FilePath]
+rutaCompleta ruta = do
+  archivos <- listDirectory ruta
+  archivosRutas <- forM archivos $ \nombreSimple -> do
+    let rutaCompleta = ruta </> nombreSimple
+    return [rutaCompleta]
+  return $ concat archivosRutas
   
 main :: IO ()
 main = someFunc
