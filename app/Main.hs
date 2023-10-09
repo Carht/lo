@@ -1,6 +1,7 @@
 module Main (main) where
 
 import Lib
+import Data.List (sort)
 import Control.Monad (forM)
 import System.FilePath ((</>))
 import System.Directory (listDirectory)
@@ -15,6 +16,12 @@ data ArchivoCompleto = Archivos {
   ruta :: FilePath,
   tamano :: FileOffset
   } deriving (Show, Eq)
+
+instance Ord ArchivoCompleto where
+  compare (Archivos {tipo = _, ruta = _, tamano = s}) (Archivos {tipo = _, ruta = _, tamano = z})
+    | s == z = EQ
+    |  s < z = LT
+    |  s > z = GT
 
 estatusArchivo :: FileStatus -> TipoArchivo
 estatusArchivo estatus
@@ -49,6 +56,11 @@ archivosCompletos ruta = do
     tamano <- tamanoArchivo unArchivo
     return [Archivos tipo unArchivo tamano]
   return $ concat archivosComp
+
+archivosCompletosOrd :: FilePath -> IO [ArchivoCompleto]
+archivosCompletosOrd ruta = do
+  rutas <- archivosCompletos ruta
+  return $ sort rutas
   
 main :: IO ()
 main = someFunc
