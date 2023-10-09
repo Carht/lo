@@ -61,6 +61,16 @@ archivosCompletosOrd :: FilePath -> IO [ArchivoCompleto]
 archivosCompletosOrd ruta = do
   rutas <- archivosCompletos ruta
   return $ sort rutas
+
+archivosIO :: FilePath -> IO [String]
+archivosIO ruta = do
+  archivos <- archivosCompletosOrd ruta
+  return $ map show archivos
+
+salida :: FilePath -> IO ()
+salida ruta = do
+  archivos <- archivosIO ruta
+  putStrLn . unlines $ archivos
   
 main :: IO ()
 main = someFunc
