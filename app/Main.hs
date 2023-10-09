@@ -40,6 +40,15 @@ rutaCompleta ruta = do
     let rutaCompleta = ruta </> nombreSimple
     return [rutaCompleta]
   return $ concat archivosRutas
+
+archivosCompletos :: FilePath -> IO [ArchivoCompleto]
+archivosCompletos ruta = do
+  rutas <- rutaCompleta ruta
+  archivosComp <- forM rutas $ \unArchivo -> do
+    tipo <- tipoArchivo unArchivo
+    tamano <- tamanoArchivo unArchivo
+    return [Archivos tipo unArchivo tamano]
+  return $ concat archivosComp
   
 main :: IO ()
 main = someFunc
