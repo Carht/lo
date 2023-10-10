@@ -18,7 +18,9 @@ data ArchivoCompleto = Archivos {
   } deriving (Show, Eq)
 
 instance Ord ArchivoCompleto where
-  compare (Archivos {tipo = _, ruta = _, tamano = s}) (Archivos {tipo = _, ruta = _, tamano = z})
+  compare (Archivos {tipo = t, ruta = a, tamano = s}) (Archivos {tipo = u, ruta = b, tamano = z})
+    | t == u = EQ
+    | a == b = EQ
     | s == z = EQ
     |  s < z = LT
     |  s > z = GT
@@ -76,7 +78,25 @@ tamanoArchivos rutaIn = do
       tamanoOtro <- tamanoArchivo rutaIn
       return [Archivos tipoArch rutaIn tamanoOtro]
     Directorio -> archivosCompletosOrd rutaIn
-      
+
+soloTamanos :: FilePath -> IO [FileOffset]
+soloTamanos rutaIn = do
+  archivosComp <- tamanoArchivos rutaIn
+  let tamanoIn = tamano <$> archivosComp
+  return tamanoIn
+
+sumTamanos :: FilePath -> IO FileOffset
+sumTamanos rutaIn = do
+  tamanos <- soloTamanos rutaIn
+  return $ foldr (+) 0 tamanos
+
+tamanoArchivosR :: FilePath -> IO [(FilePath, FileOffset)]
+tamanoArchivosR rutaIn = do
+  rutas <- tamanoArchivos rutaIn
+  tamanos <- mapM sumTamanos $ ruta <$> rutas
+  let soloRutas = ruta <$> rutas
+  return $ zip soloRutas tamanos
+  
 archivosIO :: FilePath -> IO [String]
 archivosIO rutaIn = do
   archivos <- tamanoArchivos rutaIn
