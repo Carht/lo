@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Lib
+import Lib()
 import Data.List (sort)
 import Control.Monad (forM)
 import System.FilePath ((</>))
@@ -31,61 +31,61 @@ estatusArchivo estatus
   | otherwise              = Otro
 
 tipoArchivo :: FilePath -> IO TipoArchivo
-tipoArchivo ruta = do
-  estatus <- getSymbolicLinkStatus ruta
+tipoArchivo rutaIn = do
+  estatus <- getSymbolicLinkStatus rutaIn
   return $ estatusArchivo estatus
 
 tamanoArchivo :: FilePath -> IO FileOffset
-tamanoArchivo ruta = do
-  estatus <- getSymbolicLinkStatus ruta
+tamanoArchivo rutaIn = do
+  estatus <- getSymbolicLinkStatus rutaIn
   return $ fileSize estatus
 
 rutaCompleta :: FilePath -> IO [FilePath]
-rutaCompleta ruta = do
-  archivos <- listDirectory ruta
+rutaCompleta rutaIn = do
+  archivos <- listDirectory rutaIn
   archivosRutas <- forM archivos $ \nombreSimple -> do
-    let rutaCompleta = ruta </> nombreSimple
-    return [rutaCompleta]
+    let rutaComp = rutaIn </> nombreSimple
+    return [rutaComp]
   return $ concat archivosRutas
 
 archivosCompletos :: FilePath -> IO [ArchivoCompleto]
-archivosCompletos ruta = do
-  rutas <- rutaCompleta ruta
+archivosCompletos rutaIn = do
+  rutas <- rutaCompleta rutaIn
   archivosComp <- forM rutas $ \unArchivo -> do
-    tipo <- tipoArchivo unArchivo
-    tamano <- tamanoArchivo unArchivo
-    return [Archivos tipo unArchivo tamano]
+    tipoA <- tipoArchivo unArchivo
+    tamanoA <- tamanoArchivo unArchivo
+    return [Archivos tipoA unArchivo tamanoA]
   return $ concat archivosComp
 
 archivosCompletosOrd :: FilePath -> IO [ArchivoCompleto]
-archivosCompletosOrd ruta = do
-  rutas <- archivosCompletos ruta
+archivosCompletosOrd rutaIn = do
+  rutas <- archivosCompletos rutaIn
   return $ sort rutas
 
 tamanoArchivos :: FilePath -> IO [ArchivoCompleto]
-tamanoArchivos ruta = do
-  tipoArch <- tipoArchivo ruta
+tamanoArchivos rutaIn = do
+  tipoArch <- tipoArchivo rutaIn
   case tipoArch of
     Archivo -> do
-      tamanoArchivo <- tamanoArchivo ruta
-      return [Archivos tipoArch ruta tamanoArchivo]
+      tamanoArch <- tamanoArchivo rutaIn
+      return [Archivos tipoArch rutaIn tamanoArch]
     LinkSimbolico -> do
-      tamanoLink <- tamanoArchivo ruta
-      return [Archivos tipoArch ruta tamanoLink]
+      tamanoLink <- tamanoArchivo rutaIn
+      return [Archivos tipoArch rutaIn tamanoLink]
     Otro -> do
-      tamanoOtro <- tamanoArchivo ruta
-      return [Archivos tipoArch ruta tamanoOtro]
-    Directorio -> archivosCompletosOrd ruta
+      tamanoOtro <- tamanoArchivo rutaIn
+      return [Archivos tipoArch rutaIn tamanoOtro]
+    Directorio -> archivosCompletosOrd rutaIn
       
 archivosIO :: FilePath -> IO [String]
-archivosIO ruta = do
-  archivos <- tamanoArchivos ruta
+archivosIO rutaIn = do
+  archivos <- tamanoArchivos rutaIn
   return $ map show archivos
 
 salida :: FilePath -> IO ()
-salida ruta = do
-  archivos <- archivosIO ruta
+salida rutaIn = do
+  archivos <- archivosIO rutaIn
   putStrLn . unlines $ archivos
   
 main :: IO ()
-main = someFunc
+main = salida "/home"
