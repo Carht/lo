@@ -88,7 +88,9 @@ soloTamanos rutaIn = do
 sumTamanos :: FilePath -> IO FileOffset
 sumTamanos rutaIn = do
   tamanos <- soloTamanos rutaIn
-  return $ foldr (+) 0 tamanos
+  case tamanos of
+    []        -> return $ 4096
+    _ -> return $ foldr (+) 0 tamanos
 
 tamanoArchivosR :: FilePath -> IO [(FilePath, FileOffset)]
 tamanoArchivosR rutaIn = do
@@ -99,7 +101,7 @@ tamanoArchivosR rutaIn = do
   
 archivosIO :: FilePath -> IO [String]
 archivosIO rutaIn = do
-  archivos <- tamanoArchivos rutaIn
+  archivos <- tamanoArchivosR rutaIn
   return $ map show archivos
 
 salida :: FilePath -> IO ()
