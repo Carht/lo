@@ -62,9 +62,24 @@ archivosCompletosOrd ruta = do
   rutas <- archivosCompletos ruta
   return $ sort rutas
 
+tamanoArchivos :: FilePath -> IO [ArchivoCompleto]
+tamanoArchivos ruta = do
+  tipoArch <- tipoArchivo ruta
+  case tipoArch of
+    Archivo -> do
+      tamanoArchivo <- tamanoArchivo ruta
+      return [Archivos tipoArch ruta tamanoArchivo]
+    LinkSimbolico -> do
+      tamanoLink <- tamanoArchivo ruta
+      return [Archivos tipoArch ruta tamanoLink]
+    Otro -> do
+      tamanoOtro <- tamanoArchivo ruta
+      return [Archivos tipoArch ruta tamanoOtro]
+    Directorio -> archivosCompletosOrd ruta
+      
 archivosIO :: FilePath -> IO [String]
 archivosIO ruta = do
-  archivos <- archivosCompletosOrd ruta
+  archivos <- tamanoArchivos ruta
   return $ map show archivos
 
 salida :: FilePath -> IO ()
