@@ -93,11 +93,10 @@ soloTamanos rutaIn = do
   return tamanoIn
 
 sumTamanos :: FilePath -> IO FileOffset
-sumTamanos rutaIn = do
-  tamanos <- soloTamanos rutaIn
-  case tamanos of
-    []        -> return $ 4096
-    _ -> return $ foldr (+) 0 tamanos
+sumTamanos rutaIn =
+  soloTamanos rutaIn >>= \case
+    [] -> return $ 4096
+    tamanos -> return $ foldr (+) 0 tamanos
 
 tamanoArchivosR :: FilePath -> IO [(FilePath, FileOffset)]
 tamanoArchivosR rutaIn = do
@@ -108,17 +107,56 @@ tamanoArchivosR rutaIn = do
 
 tamanoOrd :: FilePath -> IO [(FilePath, FileOffset)]
 tamanoOrd rutaIn =
-  tamanoArchivosR rutaIn >>= \archivoLista -> let {ordenada = ordenLista archivoLista} in return ordenada
+  ordenLista <$> tamanoArchivosR rutaIn
 
-archivosIO :: FilePath -> IO [String]
-archivosIO rutaIn = do
-  archivos <- tamanoOrd rutaIn
-  return $ map show archivos
+archivoToStr :: Show b => [(String, b)] -> [String]
+archivoToStr [] = []
+archivoToStr (x:xs) = [fst x, show . snd $ x] <> archivoToStr xs
+
+unirTiposStr :: [a] -> [[a]]
+unirTiposStr [] = []
+unirTiposStr (a:b:r) = [a:b:[]] <> unirTiposStr r
+
+salidaFormato :: [[String]] -> [String]
+salidaFormato [] = []
+salidaFormato (h:t) = [head h <> " \t\t" <> unwords (tail h)] <> salidaFormato t
 
 salida :: FilePath -> IO ()
 salida rutaIn = do
-  archivos <- archivosIO rutaIn
+  archivos <- salidaFormato <$> unirTiposStr <$> archivoToStr <$> tamanoOrd rutaIn
   putStrLn . unlines $ archivos
+
+usoExtendido :: IO ()
+usoExtendido = putStr . unlines $
+  [ "LO(1)"
+  ,""
+  ,"Nombre"
+  ,"     lo - Lista archivos Ordenados por tamaño."
+  ,""
+  ,"RESUMEN"
+  ,"    lg Archivo | Directorio"
+  ,""
+  ,"DESCRIPCIÓN"
+  ,"    Lista archivos ordenados de mayor a menor."
+  ,
+   ""
+  ,"    -h"
+  ,"      Retorna este texto."
+  ,""
+  ,"    -v | --version"
+  ,"      Muestra la versión del software."
+  ,""
+  ,"AUTOR"
+  ,"    Escrito por Charte."
+  ,""
+  ,"Reporte de bugs"
+  ,"    En el repositorio https://gitlab.canaima.softwarelibre.gob.ve/lo"
+  ,"    Ruta alternativa: <echarte@tutanota.com>"
+  ,""
+  ,"COPYRIGHT"
+  ,"  Copyright (R) 2023. Licencia GPLv3+: GNU GPL version 3 o posteriores <https://gnu.org/licenses/gpl.html>"
+  ,""
+  ]
 
 usoResumen :: IO ()
 usoResumen = putStr . unlines $
@@ -133,7 +171,7 @@ version = putStr . unlines $
 main :: IO ()
 main = getArgs >>= \case
   [] -> usoResumen >> exitWith (ExitFailure 1)
-  ["-h"] -> usoResumen >> exitWith (ExitFailure 1)
+  ["-h"] -> usoExtendido >> exitWith (ExitFailure 1)
   ["-v"] -> version >> exitWith (ExitFailure 1)
   ["--version"] -> version >> exitWith (ExitFailure 1)
   [rutaIn] -> salida rutaIn
