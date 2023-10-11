@@ -128,7 +128,7 @@ usoResumen = putStr . unlines $
 
 version :: IO ()
 version = putStr . unlines $
-  ["Lista archivos por orden de tamaño 0.0.1"]
+  ["Lista archivos por orden de tamaño 0.1.0"]
   
 main :: IO ()
 main = getArgs >>= \case
