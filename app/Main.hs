@@ -119,8 +119,21 @@ salida :: FilePath -> IO ()
 salida rutaIn = do
   archivos <- archivosIO rutaIn
   putStrLn . unlines $ archivos
+
+usoResumen :: IO ()
+usoResumen = putStr . unlines $
+  [ "RESUMEN"
+  , "    ./lo ruta"
+  ]
+
+version :: IO ()
+version = putStr . unlines $
+  ["Lista archivos por orden de tamaño 0.0.1"]
   
 main :: IO ()
 main = getArgs >>= \case
-  [] -> print "ok"
+  [] -> usoResumen >> exitWith (ExitFailure 1)
+  ["-h"] -> usoResumen >> exitWith (ExitFailure 1)
+  ["-v"] -> version >> exitWith (ExitFailure 1)
+  ["--version"] -> version >> exitWith (ExitFailure 1)
   [rutaIn] -> salida rutaIn
