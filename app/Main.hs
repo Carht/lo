@@ -1,10 +1,14 @@
+{-# LANGUAGE LambdaCase #-}
 module Main (main) where
 
 import Lib()
-import Data.List (sort)
+import Data.List (sort, sortBy)
 import Control.Monad (forM)
 import System.FilePath ((</>))
 import System.Directory (listDirectory)
+import System.Environment (getArgs)
+import System.Exit (exitWith, ExitCode(ExitFailure))
+import Data.Function (on)
 import System.Posix.Files (FileStatus, isDirectory, isRegularFile, isSymbolicLink,
                           getSymbolicLinkStatus, fileSize)
 import System.Posix.Types (FileOffset)
@@ -31,6 +35,9 @@ estatusArchivo estatus
   | isSymbolicLink estatus = LinkSimbolico
   | isRegularFile estatus  = Archivo
   | otherwise              = Otro
+
+ordenLista :: Ord b => [(a, b)] -> [(a, b)]
+ordenLista = sortBy $ flip $ on compare snd
 
 tipoArchivo :: FilePath -> IO TipoArchivo
 tipoArchivo rutaIn = do
@@ -98,10 +105,14 @@ tamanoArchivosR rutaIn = do
   tamanos <- mapM sumTamanos $ ruta <$> rutas
   let soloRutas = ruta <$> rutas
   return $ zip soloRutas tamanos
-  
+
+tamanoOrd :: FilePath -> IO [(FilePath, FileOffset)]
+tamanoOrd rutaIn =
+  tamanoArchivosR rutaIn >>= \archivoLista -> let {ordenada = ordenLista archivoLista} in return ordenada
+
 archivosIO :: FilePath -> IO [String]
 archivosIO rutaIn = do
-  archivos <- tamanoArchivosR rutaIn
+  archivos <- tamanoOrd rutaIn
   return $ map show archivos
 
 salida :: FilePath -> IO ()
@@ -110,4 +121,6 @@ salida rutaIn = do
   putStrLn . unlines $ archivos
   
 main :: IO ()
-main = salida "/home"
+main = getArgs >>= \case
+  [] -> print "ok"
+  [rutaIn] -> salida rutaIn
