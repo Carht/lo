@@ -57,6 +57,7 @@ rutaCompleta rutaIn = do
     return [rutaComp]
   return $ concat archivosRutas
 
+-- Busca archivos completos en un directorio inmediato, similar a "ls"
 archivosCompletos :: FilePath -> IO [ArchivoCompleto]
 archivosCompletos rutaIn = do
   rutas <- rutaCompleta rutaIn
@@ -64,6 +65,36 @@ archivosCompletos rutaIn = do
     tipoA <- tipoArchivo unArchivo
     tamanoA <- tamanoArchivo unArchivo
     return [Archivos tipoA unArchivo tamanoA]
+  return $ concat archivosComp
+
+-- Busca en un árbol de directorios recursivamente
+archivosCompletosR :: FilePath -> IO [ArchivoCompleto]
+archivosCompletosR rutaIn = do
+  rutas <- rutaCompleta rutaIn
+  archivosComp <- forM rutas $ \unArchivo -> do
+    tipoA <- tipoArchivo unArchivo
+    tamanoA <- tamanoArchivo unArchivo
+    return [Archivos tipoA unArchivo tamanoA]
+    if (tipoA == Directorio)
+      then archivosCompletosR unArchivo
+      else return [Archivos tipoA unArchivo tamanoA]
+  return $ concat archivosComp
+
+-- Busca en un árbol de directorios pero realiza un compendio de la suma de los subdirectorios
+archivosCompletosSum :: FilePath -> IO [ArchivoCompleto]
+archivosCompletosSum rutaIn = do
+  rutas <- rutaCompleta rutaIn
+  archivosComp <- forM rutas $ \unArchivo -> do
+    tipoA <- tipoArchivo unArchivo
+    tamanoA <- tamanoArchivo unArchivo
+    return [Archivos tipoA unArchivo tamanoA]
+    if (tipoA == Directorio)
+      then do
+        completoInterno <- archivosCompletosSum unArchivo
+        let tamanoInterno = tamano <$> completoInterno
+            tamanoInSum = foldr (+) 0 tamanoInterno
+        return [Archivos tipoA unArchivo tamanoInSum]
+      else return [Archivos tipoA unArchivo tamanoA]
   return $ concat archivosComp
 
 archivosCompletosOrd :: FilePath -> IO [ArchivoCompleto]
@@ -84,7 +115,7 @@ tamanoArchivos rutaIn = do
     Otro -> do
       tamanoOtro <- tamanoArchivo rutaIn
       return [Archivos tipoArch rutaIn tamanoOtro]
-    Directorio -> archivosCompletosOrd rutaIn
+    Directorio -> archivosCompletosSum rutaIn
 
 soloTamanos :: FilePath -> IO [FileOffset]
 soloTamanos rutaIn = do
@@ -106,8 +137,7 @@ tamanoArchivosR rutaIn = do
   return $ zip soloRutas tamanos
 
 tamanoOrd :: FilePath -> IO [(FilePath, FileOffset)]
-tamanoOrd rutaIn =
-  ordenLista <$> tamanoArchivosR rutaIn
+tamanoOrd rutaIn = ordenLista <$> tamanoArchivosR rutaIn
 
 archivoToStr :: Show b => [(String, b)] -> [String]
 archivoToStr [] = []
