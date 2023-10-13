@@ -117,7 +117,7 @@ unirTiposStr (a:b:r) = [a:b:[]] <> unirTiposStr r
 salida :: FilePath -> IO ()
 salida rutaIn = do
   archivos <- unirTiposStr <$> archivoToStr <$> tamanoOrd rutaIn
-  let salidaIn = map (\x -> printf "%-50s%11s" (head x) (head . tail $ x)) archivos
+  let salidaIn = (\x -> printf "%-50s%11s" (head x) (head . tail $ x)) <$> archivos
   mapM_ putStrLn salidaIn
 
 usoExtendido :: IO ()
