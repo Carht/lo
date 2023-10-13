@@ -2,6 +2,7 @@
 module Main (main) where
 
 import Lib()
+import Text.Printf
 import Data.List (sort, sortBy)
 import Control.Monad (forM)
 import System.FilePath ((</>))
@@ -97,11 +98,6 @@ archivosCompletosSum rutaIn = do
       else return [Archivos tipoA unArchivo tamanoA]
   return $ concat archivosComp
 
-archivosCompletosOrd :: FilePath -> IO [ArchivoCompleto]
-archivosCompletosOrd rutaIn = do
-  rutas <- archivosCompletos rutaIn
-  return $ sort rutas
-
 tamanoArchivos :: FilePath -> IO [ArchivoCompleto]
 tamanoArchivos rutaIn = do
   tipoArch <- tipoArchivo rutaIn
@@ -147,14 +143,11 @@ unirTiposStr :: [a] -> [[a]]
 unirTiposStr [] = []
 unirTiposStr (a:b:r) = [a:b:[]] <> unirTiposStr r
 
-salidaFormato :: [[String]] -> [String]
-salidaFormato [] = []
-salidaFormato (h:t) = [head h <> " \t\t" <> unwords (tail h)] <> salidaFormato t
-
 salida :: FilePath -> IO ()
 salida rutaIn = do
-  archivos <- salidaFormato <$> unirTiposStr <$> archivoToStr <$> tamanoOrd rutaIn
-  putStrLn . unlines $ archivos
+  archivos <- unirTiposStr <$> archivoToStr <$> tamanoOrd rutaIn
+  let salidaIn = map (\x -> printf "%-50s%11s" (head x) (head . tail $ x)) archivos
+  mapM_ putStrLn salidaIn
 
 usoExtendido :: IO ()
 usoExtendido = putStr . unlines $
@@ -180,7 +173,7 @@ usoExtendido = putStr . unlines $
   ,"    Escrito por Charte."
   ,""
   ,"Reporte de bugs"
-  ,"    En el repositorio https://gitlab.canaima.softwarelibre.gob.ve/lo"
+  ,"    En el repositorio https://github.com/Carht/lo"
   ,"    Ruta alternativa: <echarte@tutanota.com>"
   ,""
   ,"COPYRIGHT"
