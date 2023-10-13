@@ -2,8 +2,9 @@
 module Main (main) where
 
 import Lib()
+import Tipos
 import Text.Printf
-import Data.List (sort, sortBy)
+import Data.List (sortBy)
 import Control.Monad (forM)
 import System.FilePath ((</>))
 import System.Directory (listDirectory)
@@ -13,22 +14,6 @@ import Data.Function (on)
 import System.Posix.Files (FileStatus, isDirectory, isRegularFile, isSymbolicLink,
                           getSymbolicLinkStatus, fileSize)
 import System.Posix.Types (FileOffset)
-
-data TipoArchivo = Directorio | Archivo | LinkSimbolico | Otro deriving (Show, Eq)
-
-data ArchivoCompleto = Archivos {
-  tipo :: TipoArchivo,
-  ruta :: FilePath,
-  tamano :: FileOffset
-  } deriving (Show, Eq)
-
-instance Ord ArchivoCompleto where
-  compare (Archivos {tipo = t, ruta = a, tamano = s}) (Archivos {tipo = u, ruta = b, tamano = z})
-    | t == u = EQ
-    | a == b = EQ
-    | s == z = EQ
-    |  s < z = LT
-    |  s > z = GT
 
 estatusArchivo :: FileStatus -> TipoArchivo
 estatusArchivo estatus
@@ -58,37 +43,23 @@ rutaCompleta rutaIn = do
     return [rutaComp]
   return $ concat archivosRutas
 
--- Busca archivos completos en un directorio inmediato, similar a "ls"
-archivosCompletos :: FilePath -> IO [ArchivoCompleto]
-archivosCompletos rutaIn = do
-  rutas <- rutaCompleta rutaIn
-  archivosComp <- forM rutas $ \unArchivo -> do
-    tipoA <- tipoArchivo unArchivo
-    tamanoA <- tamanoArchivo unArchivo
-    return [Archivos tipoA unArchivo tamanoA]
-  return $ concat archivosComp
-
--- Busca en un árbol de directorios recursivamente
 archivosCompletosR :: FilePath -> IO [ArchivoCompleto]
 archivosCompletosR rutaIn = do
   rutas <- rutaCompleta rutaIn
   archivosComp <- forM rutas $ \unArchivo -> do
     tipoA <- tipoArchivo unArchivo
     tamanoA <- tamanoArchivo unArchivo
-    return [Archivos tipoA unArchivo tamanoA]
     if (tipoA == Directorio)
       then archivosCompletosR unArchivo
       else return [Archivos tipoA unArchivo tamanoA]
   return $ concat archivosComp
 
--- Busca en un árbol de directorios pero realiza un compendio de la suma de los subdirectorios
 archivosCompletosSum :: FilePath -> IO [ArchivoCompleto]
 archivosCompletosSum rutaIn = do
   rutas <- rutaCompleta rutaIn
   archivosComp <- forM rutas $ \unArchivo -> do
     tipoA <- tipoArchivo unArchivo
     tamanoA <- tamanoArchivo unArchivo
-    return [Archivos tipoA unArchivo tamanoA]
     if (tipoA == Directorio)
       then do
         completoInterno <- archivosCompletosSum unArchivo
@@ -157,7 +128,7 @@ usoExtendido = putStr . unlines $
   ,"     lo - Lista archivos Ordenados por tamaño."
   ,""
   ,"RESUMEN"
-  ,"    lg Archivo | Directorio"
+  ,"    lg ruta o path"
   ,""
   ,"DESCRIPCIÓN"
   ,"    Lista archivos ordenados de mayor a menor."
@@ -184,12 +155,14 @@ usoExtendido = putStr . unlines $
 usoResumen :: IO ()
 usoResumen = putStr . unlines $
   [ "RESUMEN"
-  , "    ./lo ruta"
+  , "    lo ruta o path"
+  , "    lo [-h]"
+  , "    lo [-v | --version]"    
   ]
 
 version :: IO ()
 version = putStr . unlines $
-  ["Lista archivos por orden de tamaño 0.1.0"]
+  ["Lista archivos por orden de tamaño 0.1.1"]
   
 main :: IO ()
 main = getArgs >>= \case
