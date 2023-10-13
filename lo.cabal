@@ -1,18 +1,18 @@
-cabal-version: 2.2
+cabal-version: 1.12
 
 -- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           lo
-version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/lo#readme>
-homepage:       https://github.com/githubuser/lo#readme
-bug-reports:    https://github.com/githubuser/lo/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2023 Author name here
-license:        BSD-3-Clause
+version:        0.1.1
+description:    Por favor lee el archivo README en GitHub <https://github.com/Carht/lo#README
+homepage:       https://github.com/Carht/lo#readme
+bug-reports:    https://github.com/Carht/lo/issues
+author:         Charte
+maintainer:     echarte@tutanota.com
+copyright:      2023 Charte
+license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
@@ -21,15 +21,13 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/lo
+  location: https://github.com/Carht/lo
 
 library
   exposed-modules:
       Lib
       Tipos
   other-modules:
-      Paths_lo
-  autogen-modules:
       Paths_lo
   hs-source-dirs:
       src
@@ -41,11 +39,9 @@ library
     , unix
   default-language: Haskell2010
 
-executable lo-exe
+executable lo
   main-is: Main.hs
   other-modules:
-      Paths_lo
-  autogen-modules:
       Paths_lo
   hs-source-dirs:
       app
@@ -62,8 +58,6 @@ test-suite lo-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_lo
-  autogen-modules:
       Paths_lo
   hs-source-dirs:
       test

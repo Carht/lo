@@ -1,6 +1,6 @@
 name:                lo
 version:             0.1.1
-github:              "https://github.com/Carht/lo"
+github:              "Carht/lo"
 license:             GPL-3
 author:              "Charte"
 maintainer:          "echarte@tutanota.com"
@@ -40,7 +40,7 @@ library:
   source-dirs: src
 
 executables:
-  lo-exe:
+  lo:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
