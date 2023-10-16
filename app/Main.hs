@@ -64,7 +64,7 @@ archivosCompletosSum rutaIn = do
       then do
         completoInterno <- archivosCompletosSum unArchivo
         let tamanoInterno = tamano <$> completoInterno
-            tamanoInSum = foldr (+) 0 tamanoInterno
+            tamanoInSum = foldr (+) 4096 tamanoInterno
         return [Archivos tipoA unArchivo tamanoInSum]
       else return [Archivos tipoA unArchivo tamanoA]
   return $ concat archivosComp
@@ -109,10 +109,18 @@ rutasYtamanos archivosComp = salidaHumana
     ordenado = ordenLista paraOrdenar
     salidaHumana = toGigabytes ordenado
 
+maxLongitud :: [[String]] -> [Int]
+maxLongitud [] = []
+maxLongitud (x:xs) = length (head x) : maxLongitud xs
+
+maximoLista :: (Foldable t, Ord b, Num b) => t b -> b
+maximoLista lstEnteros = foldr max 0 lstEnteros
+
 salidaHumanaSum :: FilePath -> IO ()
 salidaHumanaSum rutaIn = do
   archivos <- rutasYtamanos <$> tamanoArchivosSum rutaIn
-  let salidaIn = (\x -> printf "%-100s%11s" (head x) (head . tail $ x)) <$> archivos
+  let maximo = maximoLista . maxLongitud $ archivos
+      salidaIn = (\x -> printf ("%-" <> show maximo <> "s%5s") (head x) (head . tail $ x)) <$> archivos
   mapM_ putStrLn salidaIn
 
 salidaHumanaTodo :: FilePath -> IO ()
