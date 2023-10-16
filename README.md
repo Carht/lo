@@ -10,6 +10,7 @@ $ lo -r ruta
 
 ## Descripción
 Te ayuda a conseguir rápidamente los archivos de gran tamaño en un árbol de directorios.
+El binario está diseñado principalmente para ser usado por root.
 
 ## Motivación
 * Para mis amistades con perfiles devops y sysadmin.
