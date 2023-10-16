@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Main (main) where
 
-import Lib()
+import Lib (toGigabytes)
 import Tipos
 import Text.Printf
 import Data.List (sortBy)
@@ -69,8 +69,8 @@ archivosCompletosSum rutaIn = do
       else return [Archivos tipoA unArchivo tamanoA]
   return $ concat archivosComp
 
-tamanoArchivos :: FilePath -> IO [ArchivoCompleto]
-tamanoArchivos rutaIn = do
+tamanoArchivosSum :: FilePath -> IO [ArchivoCompleto]
+tamanoArchivosSum rutaIn = do
   tipoArch <- tipoArchivo rutaIn
   case tipoArch of
     Archivo -> do
@@ -84,40 +84,41 @@ tamanoArchivos rutaIn = do
       return [Archivos tipoArch rutaIn tamanoOtro]
     Directorio -> archivosCompletosSum rutaIn
 
-soloTamanos :: FilePath -> IO [FileOffset]
-soloTamanos rutaIn = do
-  archivosComp <- tamanoArchivos rutaIn
-  let tamanoIn = tamano <$> archivosComp
-  return tamanoIn
-
-sumTamanos :: FilePath -> IO FileOffset
-sumTamanos rutaIn =
-  soloTamanos rutaIn >>= \case
-    [] -> return $ 4096
-    tamanos -> return $ foldr (+) 0 tamanos
-
-tamanoArchivosR :: FilePath -> IO [(FilePath, FileOffset)]
+tamanoArchivosR :: FilePath -> IO [ArchivoCompleto]
 tamanoArchivosR rutaIn = do
-  rutas <- tamanoArchivos rutaIn
-  tamanos <- mapM sumTamanos $ ruta <$> rutas
-  let soloRutas = ruta <$> rutas
-  return $ zip soloRutas tamanos
+  tipoArch <- tipoArchivo rutaIn
+  case tipoArch of
+    Archivo -> do
+      tamanoArch <- tamanoArchivo rutaIn
+      return [Archivos tipoArch rutaIn tamanoArch]
+    LinkSimbolico -> do
+      tamanoLink <- tamanoArchivo rutaIn
+      return [Archivos tipoArch rutaIn tamanoLink]
+    Otro -> do
+      tamanoOtro <- tamanoArchivo rutaIn
+      return [Archivos tipoArch rutaIn tamanoOtro]
+    Directorio -> archivosCompletosR rutaIn
 
-tamanoOrd :: FilePath -> IO [(FilePath, FileOffset)]
-tamanoOrd rutaIn = ordenLista <$> tamanoArchivosR rutaIn
+rutasYtamanos :: [ArchivoCompleto] -> [[String]]
+rutasYtamanos [] = []
+rutasYtamanos archivosComp = salidaHumana
+  where
+    rutasIn = ruta <$> archivosComp
+    tamanosIn = tamano <$> archivosComp
+    paraOrdenar = zip rutasIn tamanosIn
+    ordenado = ordenLista paraOrdenar
+    salidaHumana = toGigabytes ordenado
 
-archivoToStr :: Show b => [(String, b)] -> [String]
-archivoToStr [] = []
-archivoToStr (x:xs) = [fst x, show . snd $ x] <> archivoToStr xs
-
-unirTiposStr :: [a] -> [[a]]
-unirTiposStr [] = []
-unirTiposStr (a:b:r) = [a:b:[]] <> unirTiposStr r
-
-salida :: FilePath -> IO ()
-salida rutaIn = do
-  archivos <- unirTiposStr <$> archivoToStr <$> tamanoOrd rutaIn
+salidaHumanaSum :: FilePath -> IO ()
+salidaHumanaSum rutaIn = do
+  archivos <- rutasYtamanos <$> tamanoArchivosSum rutaIn
   let salidaIn = (\x -> printf "%-50s%11s" (head x) (head . tail $ x)) <$> archivos
+  mapM_ putStrLn salidaIn
+
+salidaHumanaTodo :: FilePath -> IO ()
+salidaHumanaTodo rutaIn = do
+  archivos <- rutasYtamanos <$> tamanoArchivosR rutaIn
+  let salidaIn = (\archivo -> printf "%-50s%11s" (head archivo) (head . tail $ archivo)) <$> archivos
   mapM_ putStrLn salidaIn
 
 usoExtendido :: IO ()
@@ -162,7 +163,7 @@ usoResumen = putStr . unlines $
 
 version :: IO ()
 version = putStr . unlines $
-  ["Lista archivos por orden de tamaño 0.1.1"]
+  ["Lista archivos por orden de tamaño 0.1.2"]
   
 main :: IO ()
 main = getArgs >>= \case
@@ -170,4 +171,5 @@ main = getArgs >>= \case
   ["-h"] -> usoExtendido >> exitWith (ExitFailure 1)
   ["-v"] -> version >> exitWith (ExitFailure 1)
   ["--version"] -> version >> exitWith (ExitFailure 1)
-  [rutaIn] -> salida rutaIn
+  ["-r", rutaIn] -> salidaHumanaTodo rutaIn
+  [rutaIn] -> salidaHumanaSum rutaIn
