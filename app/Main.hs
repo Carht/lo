@@ -149,6 +149,9 @@ usoExtendido = putStr . unlines $
   ,"    -v | --version"
   ,"      Muestra la versión del software."
   ,""
+  ,"    -r ruta"
+  ,"      Muestra todos los archivos de un árbol de directorios."
+  ,""
   ,"AUTOR"
   ,"    Escrito por Charte."
   ,""
@@ -166,7 +169,8 @@ usoResumen = putStr . unlines $
   [ "RESUMEN"
   , "    lo ruta o path"
   , "    lo [-h]"
-  , "    lo [-v | --version]"    
+  , "    lo [-v | --version]"
+  , "    lo -r ruta"
   ]
 
 version :: IO ()
