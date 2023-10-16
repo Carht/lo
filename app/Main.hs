@@ -112,13 +112,13 @@ rutasYtamanos archivosComp = salidaHumana
 salidaHumanaSum :: FilePath -> IO ()
 salidaHumanaSum rutaIn = do
   archivos <- rutasYtamanos <$> tamanoArchivosSum rutaIn
-  let salidaIn = (\x -> printf "%-50s%11s" (head x) (head . tail $ x)) <$> archivos
+  let salidaIn = (\x -> printf "%-100s%11s" (head x) (head . tail $ x)) <$> archivos
   mapM_ putStrLn salidaIn
 
 salidaHumanaTodo :: FilePath -> IO ()
 salidaHumanaTodo rutaIn = do
   archivos <- rutasYtamanos <$> tamanoArchivosR rutaIn
-  let salidaIn = (\archivo -> printf "%-50s%11s" (head archivo) (head . tail $ archivo)) <$> archivos
+  let salidaIn = (\archivo -> printf "%-150s%11s" (head archivo) (head . tail $ archivo)) <$> archivos
   mapM_ putStrLn salidaIn
 
 usoExtendido :: IO ()
