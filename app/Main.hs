@@ -101,19 +101,14 @@ maxLongitud (x:xs) = length (head x) : maxLongitud xs
 maximoLista :: (Foldable t, Ord b, Num b) => t b -> b
 maximoLista lstEnteros = foldr max 0 lstEnteros
 
-salidaHumanaSum :: FilePath -> IO ()
-salidaHumanaSum rutaIn = do
-  archivos <- rutasYtamanos <$> tamanoArchivos rutaIn archivosCompletosSum
+salida :: FilePath -> (FilePath -> IO [ArchivoCompleto]) -> IO ()
+salida rutaIn fn = do
+  archivos <- rutasYtamanos <$> tamanoArchivos rutaIn fn
   let maximo = maximoLista . maxLongitud $ archivos
-      salidaIn = (\x -> printf ("%-" <> show maximo <> "s%5s") (head x) (head . tail $ x)) <$> archivos
+      salidaIn = (\archivo -> printf ("%-" <> show maximo <> "s%5s") (head archivo) (head . tail $ archivo))
+        <$> archivos
   mapM_ putStrLn salidaIn
-
-salidaHumanaTodo :: FilePath -> IO ()
-salidaHumanaTodo rutaIn = do
-  archivos <- rutasYtamanos <$> tamanoArchivos rutaIn archivosCompletosR
-  let salidaIn = (\archivo -> printf "%-150s%11s" (head archivo) (head . tail $ archivo)) <$> archivos
-  mapM_ putStrLn salidaIn
-
+  
 usoExtendido :: IO ()
 usoExtendido = putStr . unlines $
   [ "LO(1)"
@@ -168,5 +163,5 @@ main = getArgs >>= \case
   ["-h"] -> usoExtendido >> exitWith (ExitFailure 1)
   ["-v"] -> version >> exitWith (ExitFailure 1)
   ["--version"] -> version >> exitWith (ExitFailure 1)
-  ["-r", rutaIn] -> salidaHumanaTodo rutaIn
-  [rutaIn] -> salidaHumanaSum rutaIn
+  ["-r", rutaIn] -> salida rutaIn archivosCompletosR
+  [rutaIn] -> salida rutaIn archivosCompletosSum
