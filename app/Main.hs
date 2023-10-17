@@ -69,8 +69,8 @@ archivosCompletosSum rutaIn = do
       else return [Archivos tipoA unArchivo tamanoA]
   return $ concat archivosComp
 
-tamanoArchivosSum :: FilePath -> IO [ArchivoCompleto]
-tamanoArchivosSum rutaIn = do
+tamanoArchivos :: FilePath -> (FilePath -> IO [ArchivoCompleto]) -> IO [ArchivoCompleto]
+tamanoArchivos rutaIn fn = do
   tipoArch <- tipoArchivo rutaIn
   case tipoArch of
     Archivo -> do
@@ -82,22 +82,7 @@ tamanoArchivosSum rutaIn = do
     Otro -> do
       tamanoOtro <- tamanoArchivo rutaIn
       return [Archivos tipoArch rutaIn tamanoOtro]
-    Directorio -> archivosCompletosSum rutaIn
-
-tamanoArchivosR :: FilePath -> IO [ArchivoCompleto]
-tamanoArchivosR rutaIn = do
-  tipoArch <- tipoArchivo rutaIn
-  case tipoArch of
-    Archivo -> do
-      tamanoArch <- tamanoArchivo rutaIn
-      return [Archivos tipoArch rutaIn tamanoArch]
-    LinkSimbolico -> do
-      tamanoLink <- tamanoArchivo rutaIn
-      return [Archivos tipoArch rutaIn tamanoLink]
-    Otro -> do
-      tamanoOtro <- tamanoArchivo rutaIn
-      return [Archivos tipoArch rutaIn tamanoOtro]
-    Directorio -> archivosCompletosR rutaIn
+    Directorio -> fn rutaIn
 
 rutasYtamanos :: [ArchivoCompleto] -> [[String]]
 rutasYtamanos [] = []
@@ -118,14 +103,14 @@ maximoLista lstEnteros = foldr max 0 lstEnteros
 
 salidaHumanaSum :: FilePath -> IO ()
 salidaHumanaSum rutaIn = do
-  archivos <- rutasYtamanos <$> tamanoArchivosSum rutaIn
+  archivos <- rutasYtamanos <$> tamanoArchivos rutaIn archivosCompletosSum
   let maximo = maximoLista . maxLongitud $ archivos
       salidaIn = (\x -> printf ("%-" <> show maximo <> "s%5s") (head x) (head . tail $ x)) <$> archivos
   mapM_ putStrLn salidaIn
 
 salidaHumanaTodo :: FilePath -> IO ()
 salidaHumanaTodo rutaIn = do
-  archivos <- rutasYtamanos <$> tamanoArchivosR rutaIn
+  archivos <- rutasYtamanos <$> tamanoArchivos rutaIn archivosCompletosR
   let salidaIn = (\archivo -> printf "%-150s%11s" (head archivo) (head . tail $ archivo)) <$> archivos
   mapM_ putStrLn salidaIn
 
@@ -137,7 +122,7 @@ usoExtendido = putStr . unlines $
   ,"     lo - Lista archivos Ordenados por tamaño."
   ,""
   ,"RESUMEN"
-  ,"    lg ruta o path"
+  ,"    lo ruta o path"
   ,""
   ,"DESCRIPCIÓN"
   ,"    Lista archivos ordenados de mayor a menor."
