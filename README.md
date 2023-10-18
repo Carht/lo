@@ -6,6 +6,8 @@ Lista archivos Ordenados por tamaño (lo)
 ```bash
 $ lo ruta
 $ lo -r ruta
+$ lo -h
+$ lo -v
 ```
 
 ## Descripción
@@ -20,6 +22,3 @@ El binario está diseñado principalmente para ser usado por root.
 
 ### Llamada que aplica sumatoria de árboles de directorios internos
 ![alt salida sumada](https://github.com/Carht/lo/blob/main/doc/salidaSum.png)
-
-## Llamada que retorna todos los archivos del árbol
-![alt salidaRecursiva](https://github.com/Carht/lo/blob/main/doc/salidaRecursiva.png)
